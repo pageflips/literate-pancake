@@ -26,9 +26,9 @@ Calibration & tuning
 
 - The script centralizes adb calls in `adb()` / `run_adb()` and honors `--dry-run` to print commands.
 - Primary tunables are at the top of `scripts/balloon_master_ads.py`:
-	- `LVL_BTN`, `PAUSE_MENU`, `HOME_BTN`, `RETRY_BTN` — UI coordinates for in-game taps
-	- `CLOSE_COORDS` and `POPUP_CLOSE_COORDS` — positions the script will try to dismiss ads/popups
-	- Timing constants: `AD_WAIT_AFTER_BUTTON`, `BACK_BUTTON_DELAY`, `APP_RESTART_WAIT_SEC`, etc.
+  - `LVL_BTN`, `PAUSE_MENU`, `HOME_BTN`, `RETRY_BTN` — UI coordinates for in-game taps
+  - `CLOSE_COORDS` and `POPUP_CLOSE_COORDS` — positions the script will try to dismiss ads/popups
+  - Timing constants: `AD_WAIT_AFTER_BUTTON`, `BACK_BUTTON_DELAY`, `APP_RESTART_WAIT_SEC`, etc.
 
 Useful adb commands for debugging while reproducing an ad
 
@@ -45,10 +45,10 @@ adb -s <serial> logcat -v time
 What changed in this repo (recent)
 
 - `scripts/balloon_master_ads.py` now includes:
-	- `--dry-run` and `--log-dumpsys` flags
-	- targeted close-tap attempts (`CLOSE_COORDS`) and `POPUP_CLOSE_COORDS` for in-game popups
-	- relaunch verification loop to ensure the game is foregrounded
-	- forced browser/custom-tab kill as a fallback for sticky ads
+  - `--dry-run` and `--log-dumpsys` flags
+  - targeted close-tap attempts (`CLOSE_COORDS`) and `POPUP_CLOSE_COORDS` for in-game popups
+  - relaunch verification loop to ensure the game is foregrounded
+  - forced browser/custom-tab kill as a fallback for sticky ads
 
 Safety & testing notes
 
@@ -56,4 +56,3 @@ Safety & testing notes
 - Tune `CLOSE_COORDS` / `POPUP_CLOSE_COORDS` to match your device resolution. The script defaults have been tuned for 720x1600 devices.
 
 If you'd like, I can open a PR with these changes and include any additional coordinates you want added. Feel free to update coordinates in `scripts/balloon_master_ads.py` and re-run with `--dry-run` to verify.
-# literate-pancake
