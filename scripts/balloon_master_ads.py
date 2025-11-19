@@ -406,11 +406,15 @@ def force_stop_and_relaunch():
     """Last resort: force stop and relaunch."""
     print("🛑 FORCE STOP & RELAUNCH...")
 
+    global needs_lvl_click
     force_stop_pkg(GAME_PACKAGE)
     time.sleep(1.5)
     # Try relaunch and verify; if verification fails, still return False
     success = relaunch_and_verify(retries=5, initial_delay=2.0)
-    if not success:
+    if success:
+        # After a force-stop relaunch, the app likely needs the LVL button to re-enter game
+        needs_lvl_click = True
+    else:
         # Give the device a final wait and assume best effort
         time.sleep(APP_RESTART_WAIT_SEC)
     return success
