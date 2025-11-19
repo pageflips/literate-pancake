@@ -37,7 +37,7 @@ HOME_BTN = (159, 851)  # Pause menu -> Home (TRIGGERS AD)
 RETRY_BTN = (569, 884)  # Pause menu -> Retry (TRIGGERS AD)
 
 # ---- Ad Strategy ----
-USE_HOME_FIRST = False  # prefer RETRY only to trigger ads (avoids home-triggered popups)
+USE_HOME_FIRST = True  # Start with HOME button, alternate to RETRY
 AD_WAIT_AFTER_BUTTON = 3.5  # Wait after button tap to let ad appear
 
 # ---- AGGRESSIVE Ad Clearing Settings ----
@@ -62,17 +62,25 @@ CLOSE_COORDS = [
     (650, 134),
     (59, 136),
     (649, 203),
+    # typical top-right / top-left / center-top spots
+    (690, 80),
+    (60, 80),
+    (360, 60),
 ]
 
-# In-game popup close coordinates intentionally empty to avoid opening browsers
-POPUP_CLOSE_COORDS = []
+# In-game popup close coordinates (user-provided)
+POPUP_CLOSE_COORDS = [
+    (552, 344),
+    (643, 406),
+    (679, 271),
+    (558, 394),
+]
 
 # ===============================================================
 # ===================== INTERNAL STATE ==========================
 # ===============================================================
 ad_cycle = 0
-# Always use retry to trigger ads (home can cause problematic popups)
-button_mode = "retry"
+button_mode = "home" if USE_HOME_FIRST else "retry"
 needs_lvl_click = False
 
 # Sticky ad tracking
@@ -560,9 +568,13 @@ def trigger_ad_button(button_type="home"):
     # Open pause menu
     click_pause_menu()
 
-    # Use RETRY only to trigger ads to avoid home-triggered popups
-    click_retry_button()
-    needs_lvl_click = False  # RETRY keeps us in game mode
+    # Click the appropriate button to trigger ad
+    if button_type == "home":
+        click_home_button()
+        needs_lvl_click = True  # Need LVL after HOME
+    else:  # retry
+        click_retry_button()
+        needs_lvl_click = False  # RETRY keeps us in game mode
 
     return True
 
@@ -608,6 +620,9 @@ def run_one_ad_cycle():
         print(f"[SUCCESS] ✅ ad cycle {ad_cycle + 1} complete!")
         ad_cycle += 1
 
+        # Alternate buttons
+        button_mode = "retry" if button_mode == "home" else "home"
+
         return True
     else:
         print("[warning] ⚠️ cycle incomplete, will retry")
@@ -635,7 +650,6 @@ def main(argv=None):
     parser.add_argument("--dry-run", action="store_true", help="Print adb commands instead of executing them")
     parser.add_argument("--log-dumpsys", type=int, default=0, help="Collect top-activity values for N cycles and exit")
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE, help="ADB device serial to use")
-    parser.add_argument("--max-cycles", type=int, default=0, help="Maximum ad cycles to run (0 = infinite)")
     args = parser.parse_args(argv)
 
     DRY_RUN = args.dry_run
@@ -680,10 +694,8 @@ def main(argv=None):
     click_lvl_button()
     needs_lvl_click = False
 
-    max_cycles = args.max_cycles
-
     try:
-        while (max_cycles == 0) or (ad_cycle < max_cycles):
+        while True:
             success = run_one_ad_cycle()
 
             # Random cooldown to avoid patterns
@@ -701,14 +713,6 @@ def main(argv=None):
     except Exception as e:
         print(f"\n[ERROR] script crashed: {e}")
         print(traceback.format_exc())
-
-    # After finishing cycles, do a clean force-stop and relaunch to ensure no sticky state
-    print("[done] reached max cycles or exiting - performing final refresh (force-stop & relaunch)")
-    force_stop_pkg(GAME_PACKAGE)
-    time.sleep(1.0)
-    relaunch_game()
-    time.sleep(GAME_READY_DELAY_SEC)
-    print("[done] refresh complete; exiting")
 
 
 if __name__ == "__main__":
